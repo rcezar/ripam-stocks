@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -43,7 +42,7 @@ public class StockController {
 
     @PostMapping(value = "/in-bulk", consumes = "multipart/form-data", produces = "application/json")
     @ResponseStatus(value = HttpStatus.ACCEPTED)
-    public String createStocksInBulk(@RequestParam MultipartFile file) throws IOException {
+    public String createStocksInBulk(@RequestParam MultipartFile file) {
         log.info("Creating stocks in bulk with filename {}", file.getOriginalFilename());
         throw new MethodNotImplemented("Method not yet implemented");
     }
