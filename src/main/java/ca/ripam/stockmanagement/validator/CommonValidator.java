@@ -1,4 +1,4 @@
-package ca.ripam.stockmanagement;
+package ca.ripam.stockmanagement.validator;
 
 import ca.ripam.stockmanagement.exception.IllegalArgumentException;
 import org.apache.commons.lang3.StringUtils;

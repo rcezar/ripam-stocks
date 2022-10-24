@@ -2,21 +2,29 @@ package ca.ripam.stockmanagement;
 
 import ca.ripam.stockmanagement.controller.StockController;
 import ca.ripam.stockmanagement.dto.CreateStockDto;
+import ca.ripam.stockmanagement.exception.DocumentNotFoundException;
 import ca.ripam.stockmanagement.exception.MethodNotImplemented;
+import ca.ripam.stockmanagement.model.Stock;
+import ca.ripam.stockmanagement.service.StockService;
+import ca.ripam.stockmanagement.validator.CommonValidator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import java.util.Optional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -36,6 +44,9 @@ public class StockControllerTest {
 
     @SpyBean
     private CommonValidator validator;
+
+    @MockBean
+    private StockService service;
 
     @Nested
     @DisplayName("When querying stock by ticker")
@@ -59,13 +70,25 @@ public class StockControllerTest {
         @DisplayName("Then should return stock data")
         void shouldReturnStockData() throws Exception {
 
+            Mockito.when(service.retrieveById(Mockito.any())).thenReturn(Optional.of(Stock.builder().id("6352126067f90330d6533ebb").build()));
+
             mockMvc.perform(get("/stock/6352126067f90330d6533ebb"))
-                    .andExpect(status().isInternalServerError())
-                    .andExpect(result -> Assertions.assertTrue(result.getResolvedException() instanceof MethodNotImplemented));
+                    .andDo(print())
+                    .andExpect(status().isOk());
         }
 
         @Test
-        @DisplayName("and with invalid id Then should return bad request error")
+        @DisplayName("And result is empty Then should return stock data")
+        void andResultIsEmptyThenShouldReturnStockData() throws Exception {
+
+            mockMvc.perform(get("/stock/6352126067f90330d6533ebb"))
+                    .andDo(print())
+                    .andExpect(status().isNotFound())
+                    .andExpect(result -> Assertions.assertTrue(result.getResolvedException() instanceof DocumentNotFoundException));
+        }
+
+        @Test
+        @DisplayName("And with invalid id Then should return bad request error")
         void andWithNotValidIdThenShouldReturnStockData() throws Exception {
 
             mockMvc.perform(get("/stock/6352126067f90330d6533ebba"))

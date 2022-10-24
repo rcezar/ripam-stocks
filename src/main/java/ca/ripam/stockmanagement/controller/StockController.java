@@ -1,11 +1,14 @@
 package ca.ripam.stockmanagement.controller;
 
-import ca.ripam.stockmanagement.CommonValidator;
 import ca.ripam.stockmanagement.dto.CreateStockDto;
+import ca.ripam.stockmanagement.exception.DocumentNotFoundException;
 import ca.ripam.stockmanagement.exception.MethodNotImplemented;
 import ca.ripam.stockmanagement.model.Stock;
+import ca.ripam.stockmanagement.service.StockService;
+import ca.ripam.stockmanagement.validator.CommonValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +22,7 @@ import java.util.List;
 public class StockController {
 
     private final CommonValidator validator;
+    private final StockService service;
 
     @GetMapping
     @ResponseStatus(value = HttpStatus.OK)
@@ -32,9 +36,9 @@ public class StockController {
     public Stock retrieveStocksById(@PathVariable String stockId){
 
         validator.validateObjectId(stockId);
-
         log.info("Retrieving stock by id {}", stockId);
-        throw new MethodNotImplemented("Method not yet implemented");
+        return service.retrieveById(new ObjectId(stockId))
+                .orElseThrow(() -> new DocumentNotFoundException(stockId));
     }
 
     @PostMapping
