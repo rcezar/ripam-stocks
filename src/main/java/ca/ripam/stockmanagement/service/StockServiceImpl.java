@@ -4,6 +4,7 @@ import ca.ripam.stockmanagement.exception.DocumentAlreadyExistsException;
 import ca.ripam.stockmanagement.exception.DocumentNotFoundException;
 import ca.ripam.stockmanagement.model.Stock;
 import ca.ripam.stockmanagement.repository.StockRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Example;
@@ -13,14 +14,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class StockServiceImpl implements StockService{
 
     private final StockRepository repository;
-
-    public StockServiceImpl(StockRepository repository) {
-        this.repository = repository;
-    }
 
     @Override
     public Optional<Stock> retrieveById(ObjectId objectId) {
@@ -38,7 +36,7 @@ public class StockServiceImpl implements StockService{
                 .findFirst()
                 .ifPresent(this::throwException);
 
-        log.info("Creating new stock record...");
+        log.debug("Creating new stock record...");
         return repository.save(localStock);
     }
 
