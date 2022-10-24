@@ -8,4 +8,6 @@ import java.util.Optional;
 public interface StockService {
 
     Optional<Stock> retrieveById(ObjectId objectId);
+
+    Stock createStock(Stock dtoToModel);
 }

@@ -3,10 +3,12 @@ package ca.ripam.stockmanagement;
 import ca.ripam.stockmanagement.controller.StockController;
 import ca.ripam.stockmanagement.dto.CreateStockDto;
 import ca.ripam.stockmanagement.exception.DocumentNotFoundException;
+import ca.ripam.stockmanagement.exception.IllegalArgumentException;
 import ca.ripam.stockmanagement.exception.MethodNotImplemented;
+import ca.ripam.stockmanagement.mapper.StockMapper;
 import ca.ripam.stockmanagement.model.Stock;
 import ca.ripam.stockmanagement.service.StockService;
-import ca.ripam.stockmanagement.validator.CommonValidator;
+import ca.ripam.stockmanagement.validator.StockValidator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -43,10 +45,13 @@ public class StockControllerTest {
     private ObjectMapper mapper;
 
     @SpyBean
-    private CommonValidator validator;
+    private StockValidator validator;
 
     @MockBean
     private StockService service;
+
+    @MockBean
+    private StockMapper stockMapper;
 
     @Nested
     @DisplayName("When querying stock by ticker")
@@ -105,13 +110,31 @@ public class StockControllerTest {
         @DisplayName("With new valid data Then should save and return stock data with Id")
         void shouldSaveAndReturnStockDataWithId() throws Exception {
 
+            CreateStockDto payload = CreateStockDto.builder()
+                    .stock("AAA")
+                    .quarter(1)
+                    .build();
+
+            Mockito.when(service.createStock(Mockito.any())).thenReturn(Stock.builder().build());
+
+            mockMvc.perform(post("/stock")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(mapper.writeValueAsString(payload)))
+                    .andDo(print())
+                    .andExpect(status().isCreated());
+        }
+
+        @Test
+        @DisplayName("With invalid quarter information Then should return bad request status")
+        void AndWithInvalidQuarterShouldReturnBadRequest() throws Exception {
+
             CreateStockDto payload = CreateStockDto.builder().stock("AAA").build();
 
             mockMvc.perform(post("/stock")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(mapper.writeValueAsString(payload)))
-                    .andExpect(status().isInternalServerError())
-                    .andExpect(result -> Assertions.assertTrue(result.getResolvedException() instanceof MethodNotImplemented));
+                    .andExpect(status().isBadRequest())
+                    .andExpect(result -> Assertions.assertTrue(result.getResolvedException() instanceof IllegalArgumentException));
         }
     }
 
