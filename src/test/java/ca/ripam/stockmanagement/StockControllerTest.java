@@ -2,11 +2,12 @@ package ca.ripam.stockmanagement;
 
 import ca.ripam.stockmanagement.controller.StockController;
 import ca.ripam.stockmanagement.dto.CreateStockDto;
+import ca.ripam.stockmanagement.dto.StockBulkUploadDto;
 import ca.ripam.stockmanagement.exception.DocumentNotFoundException;
 import ca.ripam.stockmanagement.exception.IllegalArgumentException;
-import ca.ripam.stockmanagement.exception.MethodNotImplemented;
 import ca.ripam.stockmanagement.mapper.StockMapper;
 import ca.ripam.stockmanagement.model.Stock;
+import ca.ripam.stockmanagement.service.StockBulkService;
 import ca.ripam.stockmanagement.service.StockService;
 import ca.ripam.stockmanagement.validator.StockValidator;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +52,9 @@ public class StockControllerTest {
 
     @MockBean
     private StockService service;
+
+    @MockBean
+    private StockBulkService bulkService;
 
     @MockBean
     private StockMapper stockMapper;
@@ -146,20 +151,23 @@ public class StockControllerTest {
     class WhenCreatingStockRecordsInBulk {
 
         @Test
-        @DisplayName("Then should return stock data")
+        @DisplayName("Then should return file id and run process method")
         void shouldReturnStockData() throws Exception {
 
-            CreateStockDto payload = CreateStockDto.builder().stock("AAA").build();
+            StockBulkUploadDto payload = StockBulkUploadDto.builder().id("AAA").build();
 
             MockMultipartFile file = new MockMultipartFile("file",
                     "hello.txt",
                     MediaType.TEXT_PLAIN_VALUE,
                     "Hello, World!".getBytes());
 
+            Mockito.when(bulkService.createStocksInBulk(Mockito.any())).thenReturn(payload);
+
             mockMvc.perform(MockMvcRequestBuilders.multipart("/stock/in-bulk").file(file))
                     .andDo(print())
-                    .andExpect(status().isInternalServerError())
-                    .andExpect(result -> Assertions.assertTrue(result.getResolvedException() instanceof MethodNotImplemented));
+                    .andExpect(status().isAccepted());
+
+            Mockito.verify(bulkService,Mockito.times(1)).processFile(ArgumentMatchers.any());
         }
     }
 }
