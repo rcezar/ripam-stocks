@@ -1,5 +1,6 @@
 package ca.ripam.stockmanagement.controller;
 
+import ca.ripam.stockmanagement.CommonValidator;
 import ca.ripam.stockmanagement.dto.CreateStockDto;
 import ca.ripam.stockmanagement.exception.MethodNotImplemented;
 import ca.ripam.stockmanagement.model.Stock;
@@ -17,6 +18,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StockController {
 
+    private final CommonValidator validator;
+
     @GetMapping
     @ResponseStatus(value = HttpStatus.OK)
     public List<Stock> retrieveStocksByName(@RequestParam String tickerInput){
@@ -27,7 +30,9 @@ public class StockController {
     @GetMapping("/{stockId}")
     @ResponseStatus(value = HttpStatus.OK)
     public Stock retrieveStocksById(@PathVariable String stockId){
-        //TODO: validate payload
+
+        validator.validateObjectId(stockId);
+
         log.info("Retrieving stock by id {}", stockId);
         throw new MethodNotImplemented("Method not yet implemented");
     }
