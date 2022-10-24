@@ -30,7 +30,7 @@ public class StockController {
     @ResponseStatus(value = HttpStatus.OK)
     public List<Stock> retrieveStocksByName(@RequestParam String tickerInput){
         log.info("Retrieving stock by name {}", tickerInput);
-        throw new MethodNotImplemented("Method not yet implemented");
+        return service.searchStockByName(tickerInput);
     }
 
     @GetMapping("/{stockId}")

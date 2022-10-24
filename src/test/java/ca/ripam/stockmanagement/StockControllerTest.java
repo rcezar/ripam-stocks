@@ -26,6 +26,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -61,9 +62,11 @@ public class StockControllerTest {
         @DisplayName("Then should return stock data")
         void AndShouldReturnStockData() throws Exception {
 
+            Mockito.when(service.searchStockByName(Mockito.anyString())).thenReturn(Arrays.asList(Stock.builder().id("6352126067f90330d6533ebb").build()));
+
             mockMvc.perform(get("/stock?tickerInput=1"))
-                    .andExpect(status().isInternalServerError())
-                    .andExpect(result -> Assertions.assertTrue(result.getResolvedException() instanceof MethodNotImplemented));
+                    .andDo(print())
+                    .andExpect(status().isOk());
         }
     }
 
