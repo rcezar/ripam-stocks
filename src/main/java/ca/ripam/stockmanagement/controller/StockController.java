@@ -3,9 +3,10 @@ package ca.ripam.stockmanagement.controller;
 import ca.ripam.stockmanagement.dto.CreateStockDto;
 import ca.ripam.stockmanagement.exception.DocumentNotFoundException;
 import ca.ripam.stockmanagement.exception.MethodNotImplemented;
+import ca.ripam.stockmanagement.mapper.StockMapper;
 import ca.ripam.stockmanagement.model.Stock;
 import ca.ripam.stockmanagement.service.StockService;
-import ca.ripam.stockmanagement.validator.CommonValidator;
+import ca.ripam.stockmanagement.validator.StockValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
@@ -21,8 +22,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StockController {
 
-    private final CommonValidator validator;
+    private final StockValidator validator;
     private final StockService service;
+    private final StockMapper mapper;
 
     @GetMapping
     @ResponseStatus(value = HttpStatus.OK)
@@ -44,9 +46,9 @@ public class StockController {
     @PostMapping
     @ResponseStatus(value = HttpStatus.CREATED)
     public Stock createStock(@RequestBody CreateStockDto payload){
-        //TODO: validate payload
+        validator.validateCreateStockPayload(payload);
         log.info("Creating Stock record {}", payload.getStock());
-        throw new MethodNotImplemented("Method not yet implemented");
+        return service.createStock(mapper.dtoToModel(payload));
     }
 
     @PostMapping(value = "/in-bulk", consumes = "multipart/form-data", produces = "application/json")
