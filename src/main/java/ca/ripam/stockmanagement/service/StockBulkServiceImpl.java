@@ -12,11 +12,13 @@ import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.gridfs.GridFsOperations;
+import org.springframework.data.mongodb.gridfs.GridFsResource;
 import org.springframework.data.mongodb.gridfs.GridFsTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -83,44 +85,51 @@ public class StockBulkServiceImpl implements StockBulkService{
 
     private void readCSVFileAndMapToStock(String documentId, GridFSFile file) throws IOException {
 
-        Reader reader = new InputStreamReader(operations.getResource(file).getInputStream());
+        GridFsResource gridFsResource = operations.getResource(file);
 
-        CSVReader csvReader = new CSVReaderBuilder(reader)
-                .withSkipLines(1)
-                .build();
-        String[] nextRecord;
-        List<Stock> errorList = new ArrayList<>();
-        Integer successfulItems = 0;
+        if (gridFsResource != null) {
 
-        while ((nextRecord = csvReader.readNext()) != null) {
-            Stock local = Stock.builder()
-                    .quarter(Integer.valueOf(nextRecord[0]))
-                    .stock(String.valueOf(nextRecord[1]))
-                    .date(String.valueOf(nextRecord[2]))
-                    .open(String.valueOf(nextRecord[3]))
-                    .high(String.valueOf(nextRecord[4]))
-                    .low(String.valueOf(nextRecord[5]))
-                    .close(String.valueOf(nextRecord[6]))
-                    .volume(String.valueOf(nextRecord[7]))
-                    .percent_change_price(String.valueOf(nextRecord[8]))
-                    .percent_change_volume_over_last_wk(String.valueOf(nextRecord[9]))
-                    .previous_weeks_volume(String.valueOf(nextRecord[10]))
-                    .next_weeks_open(String.valueOf(nextRecord[11]))
-                    .next_weeks_close(String.valueOf(nextRecord[12]))
-                    .percent_change_next_weeks_price(String.valueOf(nextRecord[13]))
-                    .days_to_next_dividend(String.valueOf(nextRecord[14]))
-                    .percent_return_next_dividend(String.valueOf(nextRecord[15]))
+            Reader reader = new InputStreamReader(gridFsResource.getInputStream());
+
+            CSVReader csvReader = new CSVReaderBuilder(reader)
+                    .withSkipLines(1)
                     .build();
-            try {
-                stockService.createStock(local);
-                successfulItems++;
+            String[] nextRecord;
+            List<Stock> errorList = new ArrayList<>();
+            Integer successfulItems = 0;
 
-            } catch (Exception error) {
-                errorList.add(local);
+            while ((nextRecord = csvReader.readNext()) != null) {
+                Stock local = Stock.builder()
+                        .quarter(Integer.valueOf(nextRecord[0]))
+                        .stock(String.valueOf(nextRecord[1]))
+                        .date(String.valueOf(nextRecord[2]))
+                        .open(String.valueOf(nextRecord[3]))
+                        .high(String.valueOf(nextRecord[4]))
+                        .low(String.valueOf(nextRecord[5]))
+                        .close(String.valueOf(nextRecord[6]))
+                        .volume(String.valueOf(nextRecord[7]))
+                        .percent_change_price(String.valueOf(nextRecord[8]))
+                        .percent_change_volume_over_last_wk(String.valueOf(nextRecord[9]))
+                        .previous_weeks_volume(String.valueOf(nextRecord[10]))
+                        .next_weeks_open(String.valueOf(nextRecord[11]))
+                        .next_weeks_close(String.valueOf(nextRecord[12]))
+                        .percent_change_next_weeks_price(String.valueOf(nextRecord[13]))
+                        .days_to_next_dividend(String.valueOf(nextRecord[14]))
+                        .percent_return_next_dividend(String.valueOf(nextRecord[15]))
+                        .build();
+                try {
+                    stockService.createStock(local);
+                    successfulItems++;
+
+                } catch (Exception error) {
+                    errorList.add(local);
+                }
             }
-        }
 
-        log.info("DocumentId = {} : #{} stocks successfully added", documentId, successfulItems);
-        log.info("DocumentId = {} : #{} stocks not added", documentId, errorList.size());
+            log.info("DocumentId = {} : #{} stocks successfully added", documentId, successfulItems);
+            log.info("DocumentId = {} : #{} stocks not added", documentId, errorList.size());
+        }else{
+            throw new FileNotFoundException("File associated to document id not found" + documentId);
+        }
     }
 }

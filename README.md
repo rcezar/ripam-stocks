@@ -26,11 +26,6 @@ Here are some special remarks for the feature create stocks in bulk.
 
 ### Building and run service locally
 
-Run Mongo Container
-``` 
-docker run -d --name mongo-on-docker -p 27017:27017 mongo
-```
-
 Execute building command from project root directory
 ```
 mvn clean package
@@ -38,12 +33,12 @@ mvn clean package
 
 then build container
 ```
-docker build -t stock-management-docker .
+docker-compose build
 ```
 
 then run container
 ```
-docker run -p 8080:8080 stock-management-docker
+docker-compose up
 ```
 
 ### Open API

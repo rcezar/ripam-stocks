@@ -1,7 +1,6 @@
 package ca.ripam.stockmanagement;
 
 import ca.ripam.stockmanagement.dto.StockBulkUploadDto;
-import ca.ripam.stockmanagement.exception.DocumentAlreadyExistsException;
 import ca.ripam.stockmanagement.service.StockBulkServiceImpl;
 import ca.ripam.stockmanagement.service.StockService;
 import com.mongodb.DBObject;
@@ -45,9 +44,6 @@ public class StockBulkServiceTest {
     @Mock
     private GridFsOperations operations;
 
-    @Mock
-    private GridFsResource gridFsResource;
-
     @InjectMocks
     private StockBulkServiceImpl service;
 
@@ -70,60 +66,6 @@ public class StockBulkServiceTest {
                     () -> assertTrue(result != null),
                     () -> assertTrue(result.getFilename() != null)
             );
-        }
-    }
-
-    @Nested
-    @DisplayName("When Processing files to create stocks in bulk")
-    class WhenProcessingStocksInFiles {
-
-        @Test
-        @DisplayName("Then should read existing file and convert ")
-        void shouldReturnStoreFile() throws IOException {
-
-            MockMultipartFile file = new MockMultipartFile("file",
-                    "hello.txt",
-                    MediaType.TEXT_PLAIN_VALUE,
-                    "Hello, World!".getBytes());
-
-            InputStream input = new FileInputStream("src/test/resources/dow_jones_index.data");
-
-            GridFSFile gridFSFile = new GridFSFile( new BsonDocument(), file.getOriginalFilename(), file.getSize(), 1, new Date(), null);
-
-            Mockito.when(gridFsTemplate.findOne(Mockito.any(Query.class))).thenReturn(gridFSFile);
-            Mockito.when(operations.getResource(Mockito.any(GridFSFile.class))).thenReturn(gridFsResource);
-            Mockito.when(gridFsResource.getInputStream()).thenReturn(input);
-
-            service.processFile("6352126067f90330d6533ebb");
-
-            Mockito.verify(stockService,Mockito.times(750)).createStock(ArgumentMatchers.any());
-            Mockito.verify(gridFsTemplate,Mockito.times(1)).delete(ArgumentMatchers.any());
-
-        }
-
-        @Test
-        @DisplayName("Then should read existing file, convert but not be able to save it as data is existing ")
-        void andDataIsExistingThenShouldSkipSavingThatData() throws IOException {
-
-            MockMultipartFile file = new MockMultipartFile("file",
-                    "hello.txt",
-                    MediaType.TEXT_PLAIN_VALUE,
-                    "Hello, World!".getBytes());
-
-            InputStream input = new FileInputStream("src/test/resources/dow_jones_index.data");
-
-            GridFSFile gridFSFile = new GridFSFile( new BsonDocument(), file.getOriginalFilename(), file.getSize(), 1, new Date(), null);
-
-            Mockito.when(gridFsTemplate.findOne(Mockito.any(Query.class))).thenReturn(gridFSFile);
-            Mockito.when(operations.getResource(Mockito.any(GridFSFile.class))).thenReturn(gridFsResource);
-            Mockito.when(gridFsResource.getInputStream()).thenReturn(input);
-            Mockito.when(stockService.createStock(Mockito.any())).thenThrow(DocumentAlreadyExistsException.class);
-
-            service.processFile("6352126067f90330d6533ebb");
-
-            Mockito.verify(stockService,Mockito.times(750)).createStock(ArgumentMatchers.any());
-            Mockito.verify(gridFsTemplate,Mockito.times(1)).delete(ArgumentMatchers.any());
-
         }
     }
 }
